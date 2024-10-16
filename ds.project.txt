@@ -1,0 +1,192 @@
+#include <stdio.h>
+    int movieID;
+    char title[100];
+    struct Movie* next;
+    Ticket* ticketList; // Head of circular linked list of tickets
+} Movie;
+
+// Function to initialize an empty movies list
+Movie* initializeMovies() {
+    return NULL;
+}
+
+// Function to initialize an empty tickets list
+Ticket* initializeTickets() {
+    return NULL;
+}
+// Function to add a new movie to the linked list
+        return head;
+    }
+    newMovie->movieID = movieID;
+    strncpy(newMovie->title, title, sizeof(newMovie->title)-1);
+    newMovie->title[sizeof(newMovie->title)-1] = '\0';
+    newMovie->next = head;
+    newMovie->ticketList = initializeTickets();
+    printf("Movie '%s' added successfully!\n", title);
+    return newMovie;
+}
+
+// Function to add a new ticket to the circular linked list
+Ticket* addTicket(Ticket* head, int ticketNumber) {
+    Ticket* newTicket = (Ticket*)malloc(sizeof(Ticket));
+    if (newTicket == NULL) {
+        printf("Memory allocation failed.\n");
+        return head;
+    }
+    newTicket->ticketNumber = ticketNumber;
+    newTicket->isBooked = false;
+
+    if (head == NULL) {
+        newTicket->next = newTicket;
+        return newTicket;
+    } else {
+        Ticket* temp = head;
+        while (temp->next != head) {
+            temp = temp->next;
+        }
+        temp->next = newTicket;
+        newTicket->next = head;
+        return head;
+    }
+}
+
+// Function to book a ticket
+void bookTicket(Ticket* head, int ticketNumber) {
+    if (head == NULL) {
+        printf("No tickets available.\n");
+        return;
+    }
+    Ticket* temp = head;
+                temp->isBooked = true;
+                printf("Ticket #%d booked successfully!\n", ticketNumber);
+            } else {
+                printf("Ticket #%d is already booked.\n", ticketNumber);
+            }
+            return;
+        }
+        temp = temp->next;
+    } while (temp != head);
+    printf("Ticket #%d not found.\n", ticketNumber);
+}
+
+// Function to display the list of movies
+void displayMovies(Movie* head) {
+    if (head == NULL) {
+        printf("No movies available.\n");
+        return;
+    }
+    printf("List of Movies:\n");
+    Movie* temp = head;
+    while (temp != NULL) {
+        printf("Movie ID: %d, Title: %s\n", temp->movieID, temp->title);
+        temp = temp->next;
+    }
+}
+// Function to display the list of tickets
+void displayTickets(Ticket* head) {
+    if (head == NULL) {
+        printf("No tickets available.\n");
+        return;
+    }
+    printf("List of Tickets:\n");
+    Ticket* temp = head;
+    do {
+        printf("Ticket #%d: %s\n", temp->ticketNumber, temp->isBooked ? "Booked" : "Available");
+        temp = temp->next;
+    } while (temp != head);
+}
+
+// Function to free memory allocated for the tickets list
+void freeTickets(Ticket* head) {
+    if (head == NULL) {
+        return;
+    }
+    Ticket* temp = head;
+    do {
+        Ticket* nextNode = temp->next;
+        free(temp);
+        temp = nextNode;
+    } while (temp != head);
+}
+// Function to free memory allocated for the movies list
+void freeMovies(Movie* head) {
+    while (head != NULL) {
+        Movie* temp = head;
+        head = head->next;
+        freeTickets(temp->ticketList);
+        free(temp);
+    }
+}
+
+int main() {
+    Movie* movieList = initializeMovies();
+    int movieIDCounter = 1;
+    int ticketNumberCounter = 1;
+    char title[100];
+    int choice, movieID, ticketNumber;
+
+    do {
+        printf("\n1. Add Movie\n");
+        printf("2. Add Ticket\n");
+        printf("3. Book Ticket\n");
+        printf("4. Display Movies\n");
+        printf("5. Display Tickets for a Movie\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1:
+                printf("Enter movie title: ");
+                getchar(); // Clear input buffer
+                fgets(title, sizeof(title), stdin);
+                title[strcspn(title, "\n")] = '\0'; // Remove trailing newline
+                movieList = addMovie(movieList, movieIDCounter++, title);
+                break;
+            case 2:
+                printf("Enter movie ID to add ticket: ");
+                scanf("%d", &movieID);
+                for (Movie* temp = movieList; temp != NULL; temp = temp->next) {
+                    if (temp->movieID == movieID) {
+                        temp->ticketList = addTicket(temp->ticketList, ticketNumberCounter++);
+                        break;
+                    }
+                }
+                break;
+            case 3:
+                printf("Enter movie ID to book ticket: ");
+                scanf("%d", &movieID);
+                printf("Enter ticket number to book: ");
+                scanf("%d", &ticketNumber);
+                for (Movie* temp = movieList; temp != NULL; temp = temp->next) {
+                    if (temp->movieID == movieID) {
+                        bookTicket(temp->ticketList, ticketNumber);
+                        break;
+                    }
+                }
+                break;
+            case 4:
+                displayMovies(movieList);
+                break;
+            case 5:
+                printf("Enter movie ID to display tickets: ");
+                scanf("%d", &movieID);
+                for (Movie* temp = movieList; temp != NULL; temp = temp->next) {
+                    if (temp->movieID == movieID) {
+                        displayTickets(temp->ticketList);
+                        break;
+                    }
+                }
+                break;
+            case 6:
+                printf("Exiting...\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != 6);
+
+    freeMovies(movieList);
+
+    return 0;
+}
+
